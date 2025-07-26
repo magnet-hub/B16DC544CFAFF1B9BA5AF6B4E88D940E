@@ -1,0 +1,31 @@
+name: Deploy WebGL to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+
+      - name: Notify API endpoint
+        env:
+          API_URL: https://your-api-endpoint.example.com/notify
+          API_TOKEN: ${{ secrets.API_TOKEN }} # Set this secret in your repo settings if needed
+        run: |
+          COMMIT_HASH=$(git rev-parse HEAD)
+          DEPLOY_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          curl -X POST "$API_URL" \
+            -H "Authorization: Bearer $API_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"url": "'$DEPLOY_URL'", "commit": "'$COMMIT_HASH'"}' 
